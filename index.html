@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DUSPOR FLOW</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">DF</div>
+    <div>
+      <h1>DUSPOR FLOW</h1>
+      <small>Inteligência que conecta processos, pessoas e produção</small>
+    </div>
+  </div>
+  <div class="muted" id="llmStatus"></div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-view="dashboard" class="active">Dashboard</button>
+  <button data-view="orders">Pedidos</button>
+  <button data-view="pcp">Painel do PCP</button>
+  <button data-view="passport">Passaporte / QR</button>
+  <button data-view="assistant">Assistente de IA</button>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <section class="view active" id="view-dashboard">
+    <div class="grid cols-4" id="dashCards"></div>
+    <div class="section-title">Pedidos por status</div>
+    <div class="card"><table id="dashStatusTable"></table></div>
+    <div class="section-title">Setores com atividade acumulada</div>
+    <div class="card"><table id="dashSectorTable"></table></div>
+  </section>
+
+  <!-- PEDIDOS -->
+  <section class="view" id="view-orders">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div class="section-title" style="margin:0;">Pedidos</div>
+      <button class="btn" id="btnNewOrder">+ Novo pedido</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Código</th><th>Cliente</th><th>Prazo</th><th>Status</th><th>Pendências críticas</th><th></th></tr></thead>
+        <tbody id="ordersTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PCP -->
+  <section class="view" id="view-pcp">
+    <div class="section-title">Painel do PCP — fila por setor</div>
+    <p class="muted">Cada setor só avança quando a etapa anterior é concluída. Clique em um pedido para ver o passaporte completo.</p>
+    <div class="grid cols-3" id="pcpBoard"></div>
+  </section>
+
+  <!-- PASSAPORTE -->
+  <section class="view" id="view-passport">
+    <div class="section-title">Passaporte digital</div>
+    <p class="muted">Escolha um pedido para ver o QR Code e a página pública de consulta (o que um funcionário veria ao escanear).</p>
+    <div class="grid cols-2">
+      <div class="card">
+        <label>Selecionar pedido</label>
+        <select id="passportOrderSelect"></select>
+        <div id="qrContainer" style="margin-top:16px; text-align:center;"></div>
+      </div>
+      <div class="card" id="passportDetail"><p class="muted">Selecione um pedido.</p></div>
+    </div>
+  </section>
+
+  <!-- ASSISTENTE -->
+  <section class="view" id="view-assistant">
+    <div class="section-title">Assistente de IA interno</div>
+    <p class="muted">Consulta dados reais do banco — nunca inventa números. Experimente uma das perguntas abaixo ou digite a sua.</p>
+    <div class="pill-row">
+      <div class="pill" data-q="Quais pedidos estão atrasados?">Pedidos atrasados</div>
+      <div class="pill" data-q="Quais pedidos possuem divergências?">Divergências em aberto</div>
+      <div class="pill" data-q="Quais tarefas estão pendentes no setor de solda?">Pendências na solda</div>
+      <div class="pill" data-q="Quais são os erros mais frequentes?">Erros mais frequentes</div>
+    </div>
+    <div class="card">
+      <div class="chat-log" id="chatLog"></div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <input id="chatInput" placeholder="Ex: qual o andamento do pedido 1048?" />
+        <button class="btn" id="chatSend">Enviar</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL: novo pedido -->
+<div class="modal-backdrop" id="modalNewOrder">
+  <div class="modal">
+    <h2>Novo pedido</h2>
+    <label>Nome do cliente</label>
+    <input id="f_customer_name" />
+    <label>Empresa</label>
+    <input id="f_customer_company" />
+    <label>Contato</label>
+    <input id="f_customer_contact" />
+    <label>Prazo de entrega</label>
+    <input id="f_due_at" type="date" />
+
+    <div class="grid cols-2">
+      <div>
+        <label>Largura — orçamento comercial (mm)</label>
+        <input id="f_width_c" type="number" />
+      </div>
+      <div>
+        <label>Largura — desenho técnico (mm)</label>
+        <input id="f_width_t" type="number" />
+      </div>
+    </div>
+    <label>Altura (mm)</label>
+    <input id="f_height" type="number" />
+    <label class="critical">Material</label>
+    <input id="f_material" placeholder="Ex: Aço galvanizado" />
+    <label class="critical">Tipo de lona</label>
+    <input id="f_canvas" placeholder="Ex: Lona PVC reforçada" />
+    <label>Modelo do motor</label>
+    <input id="f_motor" placeholder="Ex: Motor tubular 220V" />
+    <label>Observações</label>
+    <textarea id="f_notes" rows="2"></textarea>
+
+    <div class="row-actions">
+      <button class="btn secondary" id="btnCancelOrder">Cancelar</button>
+      <button class="btn" id="btnSaveOrder">Criar e validar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: detalhe do pedido -->
+<div class="modal-backdrop" id="modalOrderDetail">
+  <div class="modal" style="width:680px;">
+    <div id="orderDetailContent"></div>
+    <div class="row-actions">
+      <button class="btn secondary" id="btnCloseDetail">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
